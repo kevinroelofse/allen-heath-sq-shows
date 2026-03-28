@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Text;
+using System.Reflection;
 using AHShows.Exceptions;
 using AHShows.ViewModels;
 
@@ -13,6 +13,16 @@ public partial class FrmMain : Form
     {
         InitializeComponent();
         _selectedFolder = string.Empty;
+        SetVersionNumberInTitle();
+    }
+
+    private void SetVersionNumberInTitle()
+    {
+        Version? v = Assembly.GetExecutingAssembly().GetName().Version;
+        if (v != null)
+        {
+            Text += $" - v{v.Major}.{v.Minor}.{v.Build}";
+        }
     }
 
 
@@ -177,7 +187,7 @@ public partial class FrmMain : Form
             if (File.Exists(showDat))
             {
                 byte[] buf = File.ReadAllBytes(showDat);
-                showName = ReadNullTerminatedAscii(buf, 0);
+                showName = Tools.Ascii.ReadNullTerminatedAscii(buf, 0);
             }
 
             backgroundWorker.ReportProgress(0, $"-- Show folder: {showFolder}; Show name: {showName} --");
@@ -186,7 +196,7 @@ public partial class FrmMain : Form
                 foreach (string sceneFile in Directory.GetFiles(dir, "SCENE*.DAT"))
                 {
                     byte[] sbuf = File.ReadAllBytes(sceneFile);
-                    string sceneName = ReadNullTerminatedAscii(sbuf, 20);
+                    string sceneName = Tools.Ascii.ReadNullTerminatedAscii(sbuf, 20);
                     backgroundWorker.ReportProgress(0, $"--- Scene file: {Path.GetFileName(sceneFile)}; Scene name: {sceneName}");
                 }
             }
@@ -202,19 +212,6 @@ public partial class FrmMain : Form
     {
         btnProcess.Enabled = true;
         btnExport.Enabled = true;
-    }
-
-    static string ReadNullTerminatedAscii(byte[] buf, int start)
-    {
-        int idx = start;
-        var sb = new StringBuilder();
-        while (idx < buf.Length && buf[idx] != 0)
-        {
-            sb.Append((char)buf[idx]);
-            idx++;
-        }
-
-        return sb.ToString();
     }
 
     private void btnEmpty_Click(object sender, EventArgs e)
