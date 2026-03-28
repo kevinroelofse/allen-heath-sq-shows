@@ -1,11 +1,9 @@
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Reflection;
 using System.Text;
 using AHShows.Exceptions;
 using AHShows.ViewModels;
 
-namespace AHShows;
+namespace AHShows.Forms;
 
 public partial class FrmMain : Form
 {
@@ -181,14 +179,6 @@ public partial class FrmMain : Form
                 byte[] buf = File.ReadAllBytes(showDat);
                 showName = ReadNullTerminatedAscii(buf, 0);
             }
-            
-            // string nvDataDat = Path.Combine(dir, "NVDATA.DAT");
-            // byte[] data = File.ReadAllBytes(nvDataDat);
-            //
-            // foreach (byte b in data)
-            // {
-            //     Console.Write($"{b:X2} ");
-            // }
 
             backgroundWorker.ReportProgress(0, $"-- Show folder: {showFolder}; Show name: {showName} --");
             if (folderSettings.IncludeScenes)

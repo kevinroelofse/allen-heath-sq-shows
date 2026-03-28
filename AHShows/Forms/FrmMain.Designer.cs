@@ -1,4 +1,4 @@
-﻿namespace AHShows;
+﻿namespace AHShows.Forms;
 
 partial class FrmMain
 {
