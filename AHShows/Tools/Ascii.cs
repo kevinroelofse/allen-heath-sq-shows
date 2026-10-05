@@ -17,4 +17,15 @@ public class Ascii
 
         return sb.ToString();
     }
+    
+    internal static string ReadAscii(byte[] buf, int start, int length)
+    {
+        var sb = new StringBuilder();
+        for (int i = start; i < start + length; i++)
+        {
+            sb.Append((char)buf[i]);
+        }
+        
+        return sb.ToString();
+    }
 }

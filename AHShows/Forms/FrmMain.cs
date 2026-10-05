@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Reflection;
 using AHShows.Exceptions;
+using AHShows.Sq.Dat;
+using AHShows.Sq.Dat.Parsing;
 using AHShows.ViewModels;
 
 namespace AHShows.Forms;
@@ -177,28 +179,39 @@ public partial class FrmMain : Form
         {
             return;
         }
+        
+        var reader = new SqDatReader(new ShowDatParser(), new SceneDatParser());
+        
+        
         string[] directories = Directory.GetDirectories(folderSettings.FolderName, "SHOW*");
         foreach (var dir in directories)
         {
-            string showFolder = Path.GetFileName(dir);
-            string showDat = Path.Combine(dir, "SHOW.DAT");
-            string showName = "(Onbekend)";
+            SqShow show = reader.Read(dir);
 
-            if (File.Exists(showDat))
-            {
-                byte[] buf = File.ReadAllBytes(showDat);
-                showName = Tools.Ascii.ReadNullTerminatedAscii(buf, 0);
-            }
-
-            backgroundWorker.ReportProgress(0, $"-- Show folder: {showFolder}; Show name: {showName} --");
+            backgroundWorker.ReportProgress(0, $"-- Show folder: {show.FolderName}; Show name: {show.Name} --");
             if (folderSettings.IncludeScenes)
             {
-                foreach (string sceneFile in Directory.GetFiles(dir, "SCENE*.DAT"))
+                foreach (var scene in show.Scenes)
                 {
-                    byte[] sbuf = File.ReadAllBytes(sceneFile);
-                    string sceneName = Tools.Ascii.ReadNullTerminatedAscii(sbuf, 20);
-                    backgroundWorker.ReportProgress(0, $"--- Scene file: {Path.GetFileName(sceneFile)}; Scene name: {sceneName}");
+                    backgroundWorker.ReportProgress(0, $"--- Scene file: {scene.FileName}; Scane number: {scene.Number}; Scene name: {scene.Name} ---");
+                    backgroundWorker.ReportProgress(0, $"--- Input channels ---");
+                    foreach (var input in scene.Inputs)
+                    {
+                        string state =
+                            $"--- Input channel: {input.Number}; Name: {input.Name}; Color: {Tools.ColorConverter.ConvertColor(input.Color ?? Color.Black)} ---";
+                        backgroundWorker.ReportProgress(0, state);
+                    }
+                    
                 }
+                
+                
+                
+                // foreach (string sceneFile in Directory.GetFiles(dir, "SCENE*.DAT"))
+                // {
+                //     byte[] sbuf = File.ReadAllBytes(sceneFile);
+                //     string sceneName = Tools.Ascii.ReadNullTerminatedAscii(sbuf, 20);
+                //     backgroundWorker.ReportProgress(0, $"--- Scene file: {Path.GetFileName(sceneFile)}; Scene name: {sceneName}");
+                // }
             }
         }
     }
