@@ -6,12 +6,16 @@ public sealed class SqDatReader
 {
     private readonly ShowDatParser _showParser;
     private readonly SceneDatParser _sceneParser;
+    private readonly NvDataDatParser _nvDataParser;
 
     public SqDatReader(
         ShowDatParser showParser,
-        SceneDatParser sceneParser)
+        NvDataDatParser nvDataParser,
+        SceneDatParser sceneParser
+    )
     {
         _showParser = showParser;
+        _nvDataParser = nvDataParser;
         _sceneParser = sceneParser;
     }
 
@@ -26,16 +30,31 @@ public sealed class SqDatReader
             throw new DirectoryNotFoundException(directory);
 
         string showPath = Path.Combine(directory, "SHOW.DAT");
+        string nvDataPath = Path.Combine(directory, "NVDATA.DAT");
 
         if (!File.Exists(showPath))
+        {
             throw new FileNotFoundException(
                 "SHOW.DAT niet gevonden.",
-                showPath);
+                showPath
+            );
+        }
+        
+        if (!File.Exists(nvDataPath))
+        {
+            throw new FileNotFoundException(
+                "NVDATA.DAT niet gevonden.",
+                nvDataPath
+            );
+        }
 
         // SHOW.DAT lezen
         SqDatFile showFile = ReadFile(showPath);
-
+        // NVDATA.DAT lezen
+        SqDatFile nvDataFile = ReadFile(Path.Combine(directory, "NVDATA.DAT"));
+        
         SqShow show = _showParser.Parse(showFile);
+        show.Inputs = _nvDataParser.ParseInputs(nvDataFile);
 
         // SCENE000.DAT, SCENE001.DAT, etc.
         IEnumerable<string> sceneFiles =

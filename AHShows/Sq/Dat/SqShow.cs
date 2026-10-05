@@ -6,4 +6,5 @@ public class SqShow
     public string? FolderName { get; set; }
 
     public List<SqScene> Scenes { get; } = [];
+    public List<SqPreAmp> Inputs { get; set; } = [];
 }
