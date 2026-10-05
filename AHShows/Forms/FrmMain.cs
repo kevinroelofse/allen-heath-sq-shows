@@ -257,20 +257,130 @@ public partial class FrmMain : Form
         TabPage algemeenTab = CreateAlgemeenTab(show);
         //
         // // Scenes
-        // TabPage scenesTab = CreateScenesTab(show);
+        TabPage scenesTab = CreateScenesTab(show);
         //
         // // Inputs
-        // TabPage inputsTab = CreateInputsTab(show);
+        TabPage inputsTab = CreatePreAmpsTab(show);
         //
         showTabControl.TabPages.Add(algemeenTab);
-        // showTabControl.TabPages.Add(scenesTab);
-        // showTabControl.TabPages.Add(inputsTab);
+        showTabControl.TabPages.Add(scenesTab);
+        showTabControl.TabPages.Add(inputsTab);
 
+        foreach (SqScene scene in show.Scenes)
+        {
+            showTabControl.TabPages.Add(CreateSceneTab(scene));
+        }
+        
+        
         showTab.Controls.Add(showTabControl);
 
         tabShows.TabPages.Add(showTab);
     }
+
+    private TabPage CreateSceneTab(SqScene scene)
+    {    
+        TabPage tab = new TabPage("Scene: " + scene.Name);
+
+        DataGridView grid = CreateInputGrid(scene);
+
+        tab.Controls.Add(grid);
+
+        return tab;
+        
+    }
+
+    private TabPage CreateScenesTab(SqShow show)
+    {
+        TabPage tab = new TabPage("Scenes");
+
+        DataGridView grid = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            AutoGenerateColumns = true,
+            ReadOnly = true,
+            AllowUserToAddRows = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            RowHeadersVisible = false
+        };
+
+        grid.DataSource = show.Scenes;
+
+        tab.Controls.Add(grid);
+
+        return tab;
+    }
     
+    private DataGridView CreateInputGrid(SqScene scene)
+    {
+        DataGridView grid = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            AutoGenerateColumns = false,
+            ReadOnly = true,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            MultiSelect = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            RowHeadersVisible = false
+        };
+
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Nr.",
+            DataPropertyName = "Number",
+            FillWeight = 15
+        });
+
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Naam",
+            DataPropertyName = "Name",
+            FillWeight = 60
+        });
+
+        DataGridViewTextBoxColumn colorColumn = new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Kleur",
+            Name = "Color",
+            FillWeight = 25
+        };
+
+        grid.Columns.Add(colorColumn);
+
+        grid.DataSource = scene.Inputs;
+
+        grid.CellPainting += (sender, e) =>
+        {
+            if (e.RowIndex < 0 ||
+                e.ColumnIndex != colorColumn.Index)
+            {
+                return;
+            }
+
+            SqInput input = scene.Inputs[e.RowIndex];
+
+            e.PaintBackground(e.CellBounds, true);
+
+            if (input.Color.HasValue)
+            {
+                using Brush brush = new SolidBrush(input.Color.Value);
+
+                Rectangle rect = new Rectangle(
+                    e.CellBounds.X + 5,
+                    e.CellBounds.Y + 5,
+                    e.CellBounds.Width - 10,
+                    e.CellBounds.Height - 10);
+
+                e.Graphics.FillRectangle(brush, rect);
+            }
+
+            e.Handled = true;
+        };
+
+        return grid;
+    }
+
     private TabPage CreateAlgemeenTab(SqShow show)
     {
         TabPage tab = new TabPage("Algemeen");
@@ -324,6 +434,58 @@ public partial class FrmMain : Form
             1, 1);
 
         tab.Controls.Add(table);
+
+        return tab;
+    }
+    
+    private TabPage CreatePreAmpsTab(SqShow show)
+    {
+        TabPage tab = new TabPage("Fysieke Inputs");
+
+        DataGridView grid = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            ReadOnly = true,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AutoGenerateColumns = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            MultiSelect = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            RowHeadersVisible = false
+        };
+
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Nr.",
+            DataPropertyName = "ChannelId",
+            FillWeight = 10
+        });
+
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Gain",
+            DataPropertyName = "GainEffective",
+            FillWeight = 30
+        });
+
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Phantom Power",
+            DataPropertyName = "PhantomPower",
+            FillWeight = 20
+        });
+
+        grid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = "Pad",
+            DataPropertyName = "Pad",
+            FillWeight = 20
+        });
+
+        grid.DataSource = show.Inputs;
+
+        tab.Controls.Add(grid);
 
         return tab;
     }
